@@ -8,10 +8,6 @@ Knowledge OS combines structured note capture, AI enrichment, and vector-based r
 
 https://knowledge-os-five.vercel.app/
 
-## Product Demo
-
-![Knowledge OS demo](./public/knowledge-os-demo.gif)
-
 ## Case Study
 
 https://knowledge-os-five.vercel.app/case-study
@@ -61,10 +57,13 @@ https://knowledge-os-five.vercel.app/case-study
 
 1. User creates note.
 2. On enrich:
+
 - Generate structured JSON summary + tags.
 - Generate embedding vector.
 - Store summary, tags, and embedding.
+
 3. On semantic search:
+
 - Generate query embedding.
 - Call Postgres RPC `match_notes`.
 - Return similarity-ranked results.
