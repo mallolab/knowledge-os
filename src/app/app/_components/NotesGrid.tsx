@@ -485,9 +485,6 @@ export function NotesGrid({
                         <Sparkles className="size-3.5 motion-safe:animate-spin" />
                         Enriching note with summary, tags, and embedding...
                       </div>
-                      <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-emerald-200/70">
-                        <div className="h-full w-1/3 rounded-full bg-emerald-500 motion-safe:animate-pulse" />
-                      </div>
                     </div>
                   </div>
                 )}
