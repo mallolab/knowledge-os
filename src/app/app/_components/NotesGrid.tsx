@@ -59,6 +59,11 @@ type DeletedNoteSnapshot = {
   tagNames: string[];
 };
 
+type RelatedNote = {
+  id: string;
+  title: string;
+};
+
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -105,6 +110,20 @@ function noteAccentClass(noteId: string) {
   if (pick === 1) return "from-amber-400/80 to-rose-400/70";
   if (pick === 2) return "from-cyan-400/80 to-indigo-400/70";
   return "from-lime-400/80 to-teal-400/70";
+}
+
+function textTokens(note: Note) {
+  const source = `${note.title ?? ""} ${note.summary ?? ""} ${note.content ?? ""}`
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, " ");
+
+  return new Set(
+    source
+      .split(/\s+/)
+      .map((token) => token.trim())
+      .filter((token) => token.length >= 4)
+      .slice(0, 60),
+  );
 }
 
 export function NotesGrid({
@@ -160,6 +179,64 @@ export function NotesGrid({
       .map((noteTag) => noteTag.tags?.name?.trim().toLowerCase())
       .filter((tag): tag is string => Boolean(tag));
   }
+
+  const relatedByNoteId = useMemo(() => {
+    const related: Record<string, RelatedNote[]> = {};
+    const tagsByNoteId = new Map<string, string[]>();
+    const tokensByNoteId = new Map<string, Set<string>>();
+
+    for (const note of notes) {
+      tagsByNoteId.set(note.id, extractTagNames(note));
+      tokensByNoteId.set(note.id, textTokens(note));
+    }
+
+    for (const note of notes) {
+      const noteTags = new Set(tagsByNoteId.get(note.id) ?? []);
+      const noteTokens = tokensByNoteId.get(note.id) ?? new Set<string>();
+
+      const ranked = notes
+        .filter((candidate) => candidate.id !== note.id)
+        .map((candidate) => {
+          let score = 0;
+
+          if (note.collection_id && note.collection_id === candidate.collection_id) {
+            score += 3;
+          }
+
+          const candidateTags = tagsByNoteId.get(candidate.id) ?? [];
+          for (const tag of candidateTags) {
+            if (noteTags.has(tag)) score += 2;
+          }
+
+          const candidateTokens = tokensByNoteId.get(candidate.id) ?? new Set<string>();
+          let tokenMatches = 0;
+          for (const token of candidateTokens) {
+            if (noteTokens.has(token)) tokenMatches += 1;
+            if (tokenMatches >= 4) break;
+          }
+          score += tokenMatches;
+
+          return { candidate, score };
+        })
+        .filter((row) => row.score > 0)
+        .sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          return (
+            new Date(b.candidate.updated_at).getTime() -
+            new Date(a.candidate.updated_at).getTime()
+          );
+        })
+        .slice(0, 3)
+        .map((row) => ({
+          id: row.candidate.id,
+          title: row.candidate.title?.trim() || "Untitled",
+        }));
+
+      related[note.id] = ranked;
+    }
+
+    return related;
+  }, [notes]);
 
   function pendingActionFor(noteId: string) {
     return pendingByNote[noteId] ?? null;
@@ -456,6 +533,7 @@ export function NotesGrid({
                   Math.min(1, Math.max(0, semanticExplain.similarity)) * 100,
                 )
               : null;
+            const relatedNotes = relatedByNoteId[note.id] ?? [];
 
             return (
               <Card
@@ -492,8 +570,18 @@ export function NotesGrid({
                 <CardHeader className={viewMode === "list" ? "sm:w-80" : "space-y-2"}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <div className="truncate text-base font-semibold">
-                        {note.title?.trim() ? note.title : "Untitled"}
+                      <div className="flex items-center gap-2">
+                        <div className="truncate text-base font-semibold">
+                          {note.title?.trim() ? note.title : "Untitled"}
+                        </div>
+                        {semanticScorePercent !== null && (
+                          <Badge
+                            variant="secondary"
+                            className="shrink-0 border border-cyan-300/70 bg-cyan-100/90 text-cyan-900"
+                          >
+                            {semanticScorePercent}% match
+                          </Badge>
+                        )}
                       </div>
                       <div className="mt-1 text-xs text-muted-foreground">
                         <DropdownMenu>
@@ -612,6 +700,32 @@ export function NotesGrid({
                         </Badge>
                       ))}
                   </div>
+
+                  {relatedNotes.length > 0 && (
+                    <div className="mt-4 border-t border-border/70 pt-3">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                        Related notes
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {relatedNotes.map((related) => (
+                          <button
+                            key={related.id}
+                            type="button"
+                            onClick={() =>
+                              document
+                                .getElementById(`note-${related.id}`)
+                                ?.scrollIntoView({ behavior: "smooth", block: "center" })
+                            }
+                            className="ko-press inline-flex items-center rounded-full border border-border/80 bg-background/70 px-2.5 py-1 text-xs text-muted-foreground hover:bg-muted"
+                            aria-label={`Jump to related note ${related.title}`}
+                            title={related.title}
+                          >
+                            {related.title}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             );

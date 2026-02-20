@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { KeyRound, Mail, Orbit, Sparkles } from "lucide-react";
+import { BookOpen, Command, KeyRound, Mail, Orbit, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -180,6 +181,23 @@ export default function LoginPage() {
                   {status}
                 </p>
               )}
+
+              <div className="grid grid-cols-1 gap-2 pt-1 sm:grid-cols-2">
+                <Link
+                  href="/app/demo"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border bg-card/70 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
+                >
+                  Open demo
+                  <Command className="size-4" />
+                </Link>
+                <Link
+                  href="/case-study"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border bg-card/70 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
+                >
+                  Case study
+                  <BookOpen className="size-4" />
+                </Link>
+              </div>
             </form>
           </CardContent>
         </Card>

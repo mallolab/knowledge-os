@@ -188,6 +188,11 @@ export function AppShell({
 
   const showSemantic = isSearching && results !== null;
   const displayNotes = showSemantic ? resultNotesLike : locallyFilteredNotes;
+  const topSemanticPercent = useMemo(() => {
+    if (!showSemantic || !results?.length) return null;
+    const top = Number(results[0]?.similarity ?? 0);
+    return Math.round(clampSimilarity(top) * 100);
+  }, [results, showSemantic]);
   const semanticExplainByNoteId = useMemo(() => {
     if (!showSemantic || !results) return {};
 
@@ -349,7 +354,9 @@ export function AppShell({
         {isSearching && (
           <div className="glass-panel ko-fade-up rounded-xl px-4 py-2 text-sm text-muted-foreground">
             {showSemantic
-              ? `${results?.length ?? 0} semantic result(s)`
+              ? `${results?.length ?? 0} semantic result(s)${
+                  topSemanticPercent !== null ? ` • top match ${topSemanticPercent}%` : ""
+                }`
               : isPending
                 ? "Searching semantically... (showing instant local matches)"
                 : "Showing instant local matches"}

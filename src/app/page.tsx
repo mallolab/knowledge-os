@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  BookOpen,
   Command,
   Layers2,
   Orbit,
@@ -48,6 +49,13 @@ export default function Home() {
             >
               Open Demo App
               <Command className="size-4" />
+            </Link>
+            <Link
+              href="/case-study"
+              className="inline-flex items-center gap-2 rounded-xl border bg-card/70 px-5 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
+            >
+              Read Case Study
+              <BookOpen className="size-4" />
             </Link>
           </div>
         </section>

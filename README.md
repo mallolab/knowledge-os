@@ -8,6 +8,14 @@ Knowledge OS combines structured note capture, AI enrichment, and vector-based r
 
 https://knowledge-os-five.vercel.app/
 
+## Product Demo
+
+![Knowledge OS demo](./public/knowledge-os-demo.gif)
+
+## Case Study
+
+https://knowledge-os-five.vercel.app/case-study
+
 ---
 
 ## Core Features
