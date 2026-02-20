@@ -12,8 +12,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { createCollection } from "../actions";
 import { useEffect } from "react";
+import type { WorkspaceMode } from "@/lib/app-mode";
 
-export function NewCollectionDialog() {
+export function NewCollectionDialog({
+  mode = "user",
+}: {
+  mode?: WorkspaceMode;
+}) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,7 +38,7 @@ export function NewCollectionDialog() {
     setError(null);
     setLoading(true);
     try {
-      await createCollection(trimmed);
+      await createCollection(trimmed, mode);
       setName("");
       setOpen(false);
       emitToast("Collection created.", "success");

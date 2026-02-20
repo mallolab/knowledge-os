@@ -7,6 +7,7 @@ import { NotesGrid } from "./NotesGrid";
 import { semanticSearch } from "../actions";
 import type { Note } from "@/lib/types";
 import { CommandPalette } from "./CommandPalette";
+import { isDemoMode, type WorkspaceMode } from "@/lib/app-mode";
 
 type SearchRow = {
   id: string;
@@ -94,9 +95,11 @@ function buildSemanticSnippet(
 export function AppShell({
   notes,
   collections,
+  mode = "user",
 }: {
   notes: Note[];
   collections: { id: string; name: string }[];
+  mode?: WorkspaceMode;
 }) {
   const [query, setQuery] = useState("");
   const [remoteResult, setRemoteResult] = useState<{
@@ -124,7 +127,7 @@ export function AppShell({
       startTransition(() => {
         void (async () => {
           try {
-            const data = (await semanticSearch(qRaw)) as SearchRow[];
+            const data = (await semanticSearch(qRaw, mode)) as SearchRow[];
             setSearchCache((prev) => ({ ...prev, [qKey]: data }));
             setRemoteResult({ query: qKey, data });
           } catch {
@@ -143,7 +146,7 @@ export function AppShell({
     }, 260);
 
     return () => clearTimeout(t);
-  }, [cachedForQuery, query, startTransition]);
+  }, [cachedForQuery, mode, query, startTransition]);
 
   const isSearching = query.trim().length > 0;
   const results =
@@ -287,6 +290,7 @@ export function AppShell({
           isSearching={isSearching}
           isPending={isPending}
           onClear={() => setQuery("")}
+          mode={mode}
         />
 
         <CommandPalette
@@ -336,6 +340,12 @@ export function AppShell({
           </span>
         </div>
 
+        {isDemoMode(mode) && (
+          <div className="glass-panel ko-fade-up rounded-xl px-4 py-2 text-sm text-muted-foreground">
+            Demo mode is shared and rate-limited. Note creation and AI actions are capped.
+          </div>
+        )}
+
         {isSearching && (
           <div className="glass-panel ko-fade-up rounded-xl px-4 py-2 text-sm text-muted-foreground">
             {showSemantic
@@ -353,6 +363,7 @@ export function AppShell({
           onCollectionFilterChange={setCollectionFilter}
           semanticQuery={showSemantic ? query.trim() : ""}
           semanticExplainByNoteId={semanticExplainByNoteId}
+          mode={mode}
         />
       </div>
 

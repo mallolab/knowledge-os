@@ -13,6 +13,7 @@ import {
   updateNoteCollection,
 } from "../actions";
 import type { Note } from "@/lib/types";
+import type { WorkspaceMode } from "@/lib/app-mode";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -113,6 +114,7 @@ export function NotesGrid({
   onCollectionFilterChange,
   semanticExplainByNoteId,
   semanticQuery,
+  mode = "user",
 }: {
   notes: Note[];
   collections: { id: string; name: string }[];
@@ -120,6 +122,7 @@ export function NotesGrid({
   onCollectionFilterChange: (value: string) => void;
   semanticExplainByNoteId?: Record<string, SemanticExplain>;
   semanticQuery?: string;
+  mode?: WorkspaceMode;
 }) {
   const router = useRouter();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -177,7 +180,7 @@ export function NotesGrid({
 
   async function onUndoDelete(snapshot: DeletedNoteSnapshot) {
     try {
-      await restoreDeletedNote(snapshot);
+      await restoreDeletedNote(snapshot, mode);
       emitToast("Delete undone.", "success");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to undo delete.";
@@ -195,7 +198,7 @@ export function NotesGrid({
       await updateNoteCollection({
         noteId,
         collectionId: previousCollectionId,
-      });
+      }, mode);
       emitToast(`Move undone. Back to ${previousCollectionName}.`, "success");
     } catch (err: unknown) {
       const message =
@@ -212,7 +215,7 @@ export function NotesGrid({
     previousTagNames: string[];
   }) {
     try {
-      await undoEnrichNote(note);
+      await undoEnrichNote(note, mode);
       emitToast("Enrich undone.", "success");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to undo enrich.";
@@ -226,7 +229,7 @@ export function NotesGrid({
 
     setNotePending(note.id, "enrich");
     try {
-      await enrichNote(note.id);
+      await enrichNote(note.id, mode);
       emitToast("Note enriched with summary, tags, and embedding.", "success", {
         label: "Undo",
         ariaLabel: "Undo enrich",
@@ -253,7 +256,7 @@ export function NotesGrid({
 
     setNotePending(note.id, "delete");
     try {
-      await deleteNote(note.id);
+      await deleteNote(note.id, mode);
       emitToast("Note deleted.", "success", {
         label: "Undo",
         ariaLabel: "Undo delete",
@@ -302,7 +305,7 @@ export function NotesGrid({
       await updateNoteCollection({
         noteId: note.id,
         collectionId: nextCollectionId,
-      });
+      }, mode);
       emitToast(`Moved to ${nextCollectionName}.`, "success", {
         label: "Undo",
         ariaLabel: "Undo move to collection",

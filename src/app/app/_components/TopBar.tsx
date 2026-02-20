@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { NewNoteDialog } from "./NewNoteDialog";
 import { NewCollectionDialog } from "./NewCollectionDialog";
 import { BrandMark } from "@/components/brand/BrandMark";
+import { isDemoMode, type WorkspaceMode } from "@/lib/app-mode";
 
 export function TopBar({
   collections,
@@ -17,6 +18,7 @@ export function TopBar({
   isSearching,
   isPending,
   onClear,
+  mode = "user",
 }: {
   collections: { id: string; name: string }[];
   query: string;
@@ -24,11 +26,17 @@ export function TopBar({
   isSearching: boolean;
   isPending: boolean;
   onClear: () => void;
+  mode?: WorkspaceMode;
 }) {
   const router = useRouter();
   const supabase = createClient();
 
   async function signOut() {
+    if (isDemoMode(mode)) {
+      router.replace("/login");
+      return;
+    }
+
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
@@ -68,6 +76,11 @@ export function TopBar({
               <Sparkles className="size-3" />
               Semantic + AI
             </p>
+            {isDemoMode(mode) && (
+              <p className="ko-token inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em]">
+                Demo workspace
+              </p>
+            )}
             <p className="text-xs text-muted-foreground">
               Curated notes and retrieval in one focused workspace.
             </p>
@@ -75,10 +88,10 @@ export function TopBar({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <NewCollectionDialog />
-          <NewNoteDialog collections={collections} />
+          <NewCollectionDialog mode={mode} />
+          <NewNoteDialog collections={collections} mode={mode} />
           <Button variant="outline" onClick={signOut}>
-            Sign out
+            {isDemoMode(mode) ? "Exit demo" : "Sign out"}
           </Button>
         </div>
       </div>

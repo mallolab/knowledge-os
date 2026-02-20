@@ -110,14 +110,14 @@ export default function LoginPage() {
           </div>
         </section>
 
-        <Card className="glass-panel w-full rounded-3xl border-none p-1">
-          <CardHeader className="space-y-3 pb-2">
+        <Card className="glass-panel w-full rounded-3xl border-none px-3 py-5 sm:px-5 sm:py-6">
+          <CardHeader className="space-y-3 pb-3">
             <CardTitle className="text-3xl">Sign in</CardTitle>
             <CardDescription>
               Enter your personal research cockpit.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-4 sm:pb-6">
             <div className="mb-6 grid grid-cols-3 gap-2">
               <Button
                 type="button"

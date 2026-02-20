@@ -13,11 +13,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { createNote } from "../actions";
 import { useEffect } from "react";
+import type { WorkspaceMode } from "@/lib/app-mode";
 
 export function NewNoteDialog({
   collections,
+  mode = "user",
 }: {
   collections: { id: string; name: string }[];
+  mode?: WorkspaceMode;
 }) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -39,7 +42,7 @@ export function NewNoteDialog({
     setError(null);
     setLoading(true);
     try {
-      await createNote({ title, content, tagsCsv, collectionId });
+      await createNote({ title, content, tagsCsv, collectionId }, mode);
       setTitle("");
       setContent("");
       setTagsCsv("");
